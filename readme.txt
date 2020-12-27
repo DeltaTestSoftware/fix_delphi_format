@@ -7,9 +7,9 @@ This tool fixes Delphi's (RAD Studio XE4) formatter. In code like this:
 	  Pi = 3.000;
 	
 	// CircleArea calculates the wrong area, since it eats the wrong pie.
-	function CircleArea(D: Single): Single;
+	function CircleArea(R: Single): Single;
 	begin
-	  Result := D * D * Pi;
+	  Result := R * R * Pi;
 	end;
 
 where the // comment clearly belongs to the function following it, the built-in
@@ -20,9 +20,9 @@ this:
 	  Pi = 3.000;
 	
 	  // CircleArea calculates the wrong area, since it eats the wrong pie.
-	function CircleArea(D: Single): Single;
+	function CircleArea(R: Single): Single;
 	begin
-	  Result := D * D * Pi;
+	  Result := R * R * Pi;
 	end;
 
 This tool will unindent line comments like this to match the indentation that
