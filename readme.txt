@@ -3,7 +3,7 @@ Overview
 
 This tool fixes Delphi's (RAD Studio XE4) formatter. In code like this:
 
-    const
+	const
 	  Pi = 3.000;
 	
 	// CircleArea calculates the wrong area, since it eats the wrong pie.
@@ -16,7 +16,7 @@ where the // comment clearly belongs to the function following it, the built-in
 Delphi code formatter will indent it like the const block above it, resulting in
 this:
 
-    const
+	const
 	  Pi = 3.000;
 	
 	  // CircleArea calculates the wrong area, since it eats the wrong pie.
