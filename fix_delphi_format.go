@@ -22,8 +22,9 @@ provide at least one .pas file, they will all be fixed.`, os.Args[0])
 }
 
 func fix(path string) error {
-	if !strings.HasSuffix(strings.ToLower(path), ".pas") {
-		return errors.New("only .pas files are supported")
+	if !(strings.HasSuffix(strings.ToLower(path), ".pas") ||
+		strings.HasSuffix(strings.ToLower(path), ".dpr")) {
+		return errors.New("only .pas and .dpr files are supported")
 	}
 
 	data, err := ioutil.ReadFile(path)
