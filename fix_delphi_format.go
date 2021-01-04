@@ -22,6 +22,10 @@ provide at least one .pas file, they will all be fixed.`, os.Args[0])
 }
 
 func fix(path string) error {
+	// Using this program with other tools, we might have a space at the end of
+	// our path name. Trim it.
+	path = strings.TrimRight(path, " \t\n")
+
 	if !(strings.HasSuffix(strings.ToLower(path), ".pas") ||
 		strings.HasSuffix(strings.ToLower(path), ".dpr")) {
 		return errors.New("only .pas and .dpr files are supported")
