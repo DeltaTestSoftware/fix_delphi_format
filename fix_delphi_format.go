@@ -10,16 +10,22 @@ import (
 )
 
 func main() {
+	exitCode := 0
+
 	if len(os.Args) == 1 {
 		fmt.Fprintf(os.Stderr, `usage: %s one.pas two.pas three.pas [...]
 provide at least one .pas file, they will all be fixed.`, os.Args[0])
+		exitCode = 1
 	}
 
 	for _, path := range os.Args[1:] {
 		if err := fix(path); err != nil {
 			fmt.Fprintf(os.Stderr, "error for file '%s': %v\n", path, err)
+			exitCode = 2
 		}
 	}
+
+	os.Exit(exitCode)
 }
 
 func fix(path string) error {
