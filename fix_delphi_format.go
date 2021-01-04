@@ -11,13 +11,13 @@ import (
 
 func main() {
 	if len(os.Args) == 1 {
-		fmt.Printf(`usage: %s one.pas two.pas three.pas [...]
+		fmt.Fprintf(os.Stderr, `usage: %s one.pas two.pas three.pas [...]
 provide at least one .pas file, they will all be fixed.`, os.Args[0])
 	}
 
 	for _, path := range os.Args[1:] {
 		if err := fix(path); err != nil {
-			fmt.Printf("error for file '%s': %v\n", path, err)
+			fmt.Fprintf(os.Stderr, "error for file '%s': %v\n", path, err)
 		}
 	}
 }
