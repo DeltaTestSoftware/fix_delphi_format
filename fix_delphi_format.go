@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -35,11 +36,21 @@ func fix(path string) error {
 	if err != nil {
 		return err
 	}
-	if !isASCII(data) {
-		return errors.New("only ASCII files are supported")
+
+	utf8bom := []byte{0xEF, 0xBB, 0xBF}
+
+	var code string
+	var isUTF8 bool
+
+	if isASCII(data) {
+		code = string(data)
+	} else if bytes.HasPrefix(data, utf8bom) {
+		code = string(data[len(utf8bom):])
+		isUTF8 = true
+	} else {
+		return errors.New("only ASCII and UTF-8 (with BOM) files are supported")
 	}
 
-	code := string(data)
 	if strings.Contains(code, "\n") && !strings.Contains(code, "\r\n") {
 		return errors.New(`only files with \r\n as line breaks are supported`)
 	}
@@ -48,13 +59,22 @@ func fix(path string) error {
 		return strings.HasPrefix(strings.TrimSpace(line), "//")
 	}
 
-	indentation := func(line string) string {
-		for i := range line {
-			if line[i] != ' ' {
-				return line[:i]
+	startSpaces := func(s string) string {
+		for i := range s {
+			if s[i] != ' ' {
+				return s[:i]
 			}
 		}
 		return ""
+	}
+
+	indentation := func(line string) string {
+		indent := startSpaces(line)
+		clean := strings.ToLower(strings.TrimSpace(line))
+		if clean == "end" || clean == "end;" || strings.HasPrefix(clean, "until ") {
+			indent = "  " + indent
+		}
+		return indent
 	}
 
 	findIndentation := func(lines []string) string {
@@ -75,8 +95,12 @@ func fix(path string) error {
 		fixed = append(fixed, line)
 	}
 
-	code = strings.Join(fixed, "\r\n")
-	return ioutil.WriteFile(path, []byte(code), 0666)
+	var newData []byte
+	if isUTF8 {
+		newData = append(newData, utf8bom...)
+	}
+	newData = append(newData, []byte(strings.Join(fixed, "\r\n"))...)
+	return ioutil.WriteFile(path, newData, 0666)
 }
 
 func isASCII(data []byte) bool {
