@@ -106,6 +106,14 @@ func fix(path string) error {
 		newData = append(newData, utf8bom...)
 	}
 	newData = append(newData, []byte(strings.Join(fixed, "\r\n"))...)
+
+	newData = bytes.Replace(newData, []byte(" Default ("), []byte(" Default("), -1)
+	newData = bytes.Replace(newData, []byte(" default ("), []byte(" Default("), -1)
+
+	newData = bytes.Replace(newData, []byte(" low("), []byte(" Low("), -1)
+	newData = bytes.Replace(newData, []byte(" high("), []byte(" High("), -1)
+	newData = bytes.Replace(newData, []byte(" length("), []byte(" Length("), -1)
+
 	return ioutil.WriteFile(path, newData, 0666)
 }
 
