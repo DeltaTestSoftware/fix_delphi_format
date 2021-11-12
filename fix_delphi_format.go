@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -14,7 +15,8 @@ func main() {
 
 	if len(os.Args) == 1 {
 		fmt.Fprintf(os.Stderr, `usage: %s one.pas two.pas three.pas [...]
-provide at least one .pas file, they will all be fixed.`, os.Args[0])
+provide at least one .pas file, they will all be fixed.`,
+			filepath.Base(os.Args[0]))
 		exitCode = 1
 	}
 
