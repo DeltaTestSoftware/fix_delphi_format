@@ -31,6 +31,17 @@ follows them.
 CAVEAT: currently this tool only fixes // style line comments, not {} or (**)
 comments.
 
+Additionally it changes this code:
+
+	X := Default (SomeType);
+	for I := low(X) to high(X) do
+	  setlength(Y, length(Y) + 1);
+
+to this:
+
+	X := Default(SomeType);
+	for I := Low(X) to High(X) do
+	  SetLength(Y, Length(Y) + 1);
 
 Installation
 ------------

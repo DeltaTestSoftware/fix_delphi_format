@@ -115,6 +115,7 @@ func fix(path string) error {
 	newData = bytes.Replace(newData, []byte(" low("), []byte(" Low("), -1)
 	newData = bytes.Replace(newData, []byte(" high("), []byte(" High("), -1)
 	newData = bytes.Replace(newData, []byte(" length("), []byte(" Length("), -1)
+	newData = bytes.Replace(newData, []byte(" setlength("), []byte(" SetLength("), -1)
 
 	return ioutil.WriteFile(path, newData, 0666)
 }
