@@ -50,12 +50,11 @@ Install the Go programming language from https://golang.org/
 
 and then run:
 
-	go get -u github.com/gonutz/fix_delphi_format
-
-where -u is for getting the latest online version.
+	go install github.com/gonutz/fix_delphi_format@latest
 
 Call
 
 	fix_delphi_format file1.pas file2.pas ...
 
 which will format all the .pas files that you give it.
+
