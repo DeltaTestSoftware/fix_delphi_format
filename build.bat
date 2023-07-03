@@ -1,3 +1,4 @@
+@echo off
 setlocal
 pushd %~dp0
 
@@ -6,4 +7,3 @@ set GOARCH=386
 go build -ldflags="-s -w"
 
 popd
-

@@ -33,13 +33,14 @@ comments.
 
 Additionally it changes this code:
 
+	var
 	X := Default (SomeType);
 	for I := low(X) to high(X) do
 	  setlength(Y, length(Y) + 1);
 
 to this:
 
-	X := Default(SomeType);
+	var X := Default(SomeType);
 	for I := Low(X) to High(X) do
 	  SetLength(Y, Length(Y) + 1);
 
@@ -50,11 +51,10 @@ Install the Go programming language from https://golang.org/
 
 and then run:
 
-	go install github.com/gonutz/fix_delphi_format@latest
+	go install github.com/DeltaTestSoftware/fix_delphi_format@latest
 
 Call
 
 	fix_delphi_format file1.pas file2.pas ...
 
 which will format all the .pas files that you give it.
-

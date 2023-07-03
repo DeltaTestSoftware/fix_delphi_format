@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 func main() {
@@ -67,9 +68,9 @@ func fix(path string) error {
 		return strings.HasPrefix(strings.TrimSpace(line), "//")
 	}
 
-	startSpaces := func(s string) string {
-		for i := range s {
-			if s[i] != ' ' {
+	indentationString := func(s string) string {
+		for i, r := range s {
+			if !unicode.IsSpace(r) {
 				return s[:i]
 			}
 		}
@@ -77,7 +78,7 @@ func fix(path string) error {
 	}
 
 	indentation := func(line string) string {
-		indent := startSpaces(line)
+		indent := indentationString(line)
 		clean := strings.ToLower(strings.TrimSpace(line))
 		if clean == "end" || clean == "end;" || strings.HasPrefix(clean, "until ") {
 			indent = "  " + indent
@@ -94,20 +95,63 @@ func fix(path string) error {
 		return ""
 	}
 
-	lines := strings.Split(code, "\r\n")
-	var fixed []string
-	for i, line := range lines {
-		if isComment(line) {
-			line = findIndentation(lines[i+1:]) + strings.TrimSpace(line)
-		}
-		fixed = append(fixed, line)
+	lineIsIndentedVar := func(line string) bool {
+		isVar := strings.ToLower(strings.TrimSpace(line)) == "var"
+		isIndented := len(indentationString(line)) > 0
+		return isVar && isIndented
 	}
+
+	isLocalVar := func(line1, line2 string) bool {
+		return lineIsIndentedVar(line1) &&
+			indentationString(line1) == indentationString(line2)
+	}
+
+	firstNonSpace := func(s string) int {
+		for i, r := range s {
+			if !unicode.IsSpace(r) {
+				return i
+			}
+		}
+		return -1
+	}
+
+	addLocalVarPrefix := func(line string) string {
+		i := firstNonSpace(line)
+		return line[:i] + "var " + line[i:]
+	}
+
+	fixCommentIndentation := func(lines []string) []string {
+		var fixed []string
+		for i, line := range lines {
+			if i+1 < len(lines) && isComment(line) {
+				line = findIndentation(lines[i+1:]) + strings.TrimSpace(line)
+			}
+			fixed = append(fixed, line)
+		}
+		return fixed
+	}
+
+	fixLocalVars := func(lines []string) []string {
+		var fixed []string
+		for i := range lines {
+			if i+1 < len(lines) && isLocalVar(lines[i], lines[i+1]) {
+				lines[i+1] = addLocalVarPrefix(lines[i+1])
+			} else {
+				fixed = append(fixed, lines[i])
+			}
+		}
+		return fixed
+	}
+
+	lines := strings.Split(code, "\r\n")
+	lines = fixCommentIndentation(lines)
+	lines = fixLocalVars(lines)
 
 	var newData []byte
 	if isUTF8 {
 		newData = append(newData, utf8bom...)
 	}
-	newData = append(newData, []byte(strings.Join(fixed, "\r\n"))...)
+	newData = append(newData, []byte(strings.Join(lines, "\r\n"))...)
 
 	newData = bytes.Replace(newData, []byte(" Default ("), []byte(" Default("), -1)
 	newData = bytes.Replace(newData, []byte(" default ("), []byte(" Default("), -1)
