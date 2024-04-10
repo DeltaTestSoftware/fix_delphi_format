@@ -64,85 +64,6 @@ func fix(path string) error {
 		return errors.New(`only files with \r\n as line breaks are supported`)
 	}
 
-	isComment := func(line string) bool {
-		return strings.HasPrefix(strings.TrimSpace(line), "//")
-	}
-
-	indentationString := func(s string) string {
-		for i, r := range s {
-			if !unicode.IsSpace(r) {
-				return s[:i]
-			}
-		}
-		return ""
-	}
-
-	indentation := func(line string) string {
-		indent := indentationString(line)
-		clean := strings.ToLower(strings.TrimSpace(line))
-		if clean == "end" || clean == "end;" || strings.HasPrefix(clean, "until ") {
-			indent = "  " + indent
-		}
-		return indent
-	}
-
-	findIndentation := func(lines []string) string {
-		for _, line := range lines {
-			if strings.TrimSpace(line) != "" && !isComment(line) {
-				return indentation(line)
-			}
-		}
-		return ""
-	}
-
-	lineIsIndentedVar := func(line string) bool {
-		isVar := strings.ToLower(strings.TrimSpace(line)) == "var"
-		isIndented := len(indentationString(line)) > 0
-		return isVar && isIndented
-	}
-
-	isLocalVar := func(line1, line2 string) bool {
-		return lineIsIndentedVar(line1) &&
-			indentationString(line1) == indentationString(line2)
-	}
-
-	firstNonSpace := func(s string) int {
-		for i, r := range s {
-			if !unicode.IsSpace(r) {
-				return i
-			}
-		}
-		return -1
-	}
-
-	addLocalVarPrefix := func(line string) string {
-		i := firstNonSpace(line)
-		return line[:i] + "var " + line[i:]
-	}
-
-	fixCommentIndentation := func(lines []string) []string {
-		var fixed []string
-		for i, line := range lines {
-			if i+1 < len(lines) && isComment(line) {
-				line = findIndentation(lines[i+1:]) + strings.TrimSpace(line)
-			}
-			fixed = append(fixed, line)
-		}
-		return fixed
-	}
-
-	fixLocalVars := func(lines []string) []string {
-		var fixed []string
-		for i := range lines {
-			if i+1 < len(lines) && isLocalVar(lines[i], lines[i+1]) {
-				lines[i+1] = addLocalVarPrefix(lines[i+1])
-			} else {
-				fixed = append(fixed, lines[i])
-			}
-		}
-		return fixed
-	}
-
 	lines := strings.Split(code, "\r\n")
 	lines = fixCommentIndentation(lines)
 	lines = fixLocalVars(lines)
@@ -171,4 +92,83 @@ func isASCII(data []byte) bool {
 		}
 	}
 	return true
+}
+
+func isComment(line string) bool {
+	return strings.HasPrefix(strings.TrimSpace(line), "//")
+}
+
+func indentationPrefix(s string) string {
+	for i, r := range s {
+		if !unicode.IsSpace(r) {
+			return s[:i]
+		}
+	}
+	return ""
+}
+
+func nextLineIndentation(line string) string {
+	indent := indentationPrefix(line)
+	clean := strings.ToLower(strings.TrimSpace(line))
+	if clean == "end" || clean == "end;" || strings.HasPrefix(clean, "until ") {
+		indent = "  " + indent
+	}
+	return indent
+}
+
+func findIndentation(lines []string) string {
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" && !isComment(line) {
+			return nextLineIndentation(line)
+		}
+	}
+	return ""
+}
+
+func lineIsIndentedVar(line string) bool {
+	isVar := strings.ToLower(strings.TrimSpace(line)) == "var"
+	isIndented := len(indentationPrefix(line)) > 0
+	return isVar && isIndented
+}
+
+func isLocalVar(line1, line2 string) bool {
+	return lineIsIndentedVar(line1) &&
+		indentationPrefix(line1) == indentationPrefix(line2)
+}
+
+func firstNonSpace(s string) int {
+	for i, r := range s {
+		if !unicode.IsSpace(r) {
+			return i
+		}
+	}
+	return -1
+}
+
+func addLocalVarPrefix(line string) string {
+	i := firstNonSpace(line)
+	return line[:i] + "var " + line[i:]
+}
+
+func fixCommentIndentation(lines []string) []string {
+	var fixed []string
+	for i, line := range lines {
+		if i+1 < len(lines) && isComment(line) {
+			line = findIndentation(lines[i+1:]) + strings.TrimSpace(line)
+		}
+		fixed = append(fixed, line)
+	}
+	return fixed
+}
+
+func fixLocalVars(lines []string) []string {
+	var fixed []string
+	for i := range lines {
+		if i+1 < len(lines) && isLocalVar(lines[i], lines[i+1]) {
+			lines[i+1] = addLocalVarPrefix(lines[i+1])
+		} else {
+			fixed = append(fixed, lines[i])
+		}
+	}
+	return fixed
 }
