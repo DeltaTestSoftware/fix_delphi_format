@@ -131,23 +131,20 @@ func lineIsIndentedVar(line string) bool {
 	return isVar && isIndented
 }
 
-func isLocalVar(line1, line2 string) bool {
-	return lineIsIndentedVar(line1) &&
-		indentationPrefix(line1) == indentationPrefix(line2)
-}
-
-func firstNonSpace(s string) int {
-	for i, r := range s {
-		if !unicode.IsSpace(r) {
-			return i
+func isLocalVar(line string, nextLines []string) bool {
+	if lineIsIndentedVar(line) {
+		rest := ""
+		for len(nextLines) > 0 && !strings.Contains(rest, ";") {
+			rest += nextLines[0]
+			nextLines = nextLines[1:]
 		}
+		return strings.Contains(rest, " := ")
 	}
-	return -1
+	return false
 }
 
-func addLocalVarPrefix(line string) string {
-	i := firstNonSpace(line)
-	return line[:i] + "var " + line[i:]
+func addLocalVarPrefix(varLine, nextLine string) string {
+	return varLine + " " + strings.TrimSpace(nextLine)
 }
 
 func fixCommentIndentation(lines []string) []string {
@@ -164,8 +161,8 @@ func fixCommentIndentation(lines []string) []string {
 func fixLocalVars(lines []string) []string {
 	var fixed []string
 	for i := range lines {
-		if i+1 < len(lines) && isLocalVar(lines[i], lines[i+1]) {
-			lines[i+1] = addLocalVarPrefix(lines[i+1])
+		if i+1 < len(lines) && isLocalVar(lines[i], lines[i+1:]) {
+			lines[i+1] = addLocalVarPrefix(lines[i], lines[i+1])
 		} else {
 			fixed = append(fixed, lines[i])
 		}
